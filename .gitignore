@@ -1,0 +1,17 @@
+# Gemini Agent logs & config
+.gemini/
+.agents/
+
+# IDE / Editor config
+.vscode/
+.idea/
+
+# Node dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# OS files
+.DS_Store
+Thumbs.db
