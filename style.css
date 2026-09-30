@@ -216,9 +216,9 @@ body {
     box-shadow: inset 0 1px 3px rgba(59, 90, 79, 0.08);
 }
 
-/* 지도 영역 */
+/* 지도 영역 (기본: 목록 모드이므로 숨김) */
 .map-section {
-    height: 250px;
+    display: none;
     position: relative;
     border-bottom: 1px solid var(--color-border);
     background-color: #E8E6E0;
@@ -230,13 +230,25 @@ body {
     height: 100%;
 }
 
+/* 지도 모드 활성화 시 (.app-container.show-map) */
+.app-container.show-map .map-section {
+    display: block;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+}
+
+.app-container.show-map .list-section {
+    display: none;
+}
+
 /* 위치 오류 혹은 로딩 상태 표시 overlay */
 .map-status-overlay {
     position: absolute;
     top: 10px;
     left: 10px;
     right: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.94);
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px dashed var(--color-sage);
@@ -247,6 +259,13 @@ body {
     justify-content: space-between;
     box-shadow: var(--shadow-soft);
     font-family: var(--font-serif);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-status-overlay.fade-out {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
 }
 
 .status-indicator {
@@ -262,12 +281,12 @@ body {
     background-color: var(--color-primary);
 }
 
-/* 리스트 섹션 */
+/* 리스트 섹션 (기본: 화면 전체 높이를 사용해 카드를 시원하게 표시) */
 .list-section {
     flex: 1;
     overflow-y: auto;
     background-color: var(--bg-primary);
-    padding: 16px 20px;
+    padding: 16px 20px 84px; /* 하단 플로팅 버튼 여백 */
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -402,6 +421,28 @@ body {
     background-color: var(--color-primary-light);
 }
 
+.card-direct-nav-btn {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.card-direct-nav-btn:hover {
+    background-color: #2D473E;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(42, 64, 56, 0.2);
+}
+
 .card-tags {
     display: flex;
     flex-wrap: wrap;
@@ -415,6 +456,68 @@ body {
     padding: 3px 8px;
     border-radius: 4px;
     border: 1px solid var(--color-border);
+}
+
+.card-rank-badge {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(59, 90, 79, 0.3);
+    display: inline-flex;
+    align-items: center;
+    margin-right: 4px;
+}
+
+.card-category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    width: fit-content;
+    border: 1px solid rgba(59, 90, 79, 0.2);
+}
+
+.park-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.spec-chip {
+    font-size: 11px;
+    color: var(--color-text-main);
+    background-color: #F7F5EE;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--color-border);
+}
+
+.spec-chip.scale {
+    color: var(--color-primary-dark);
+    font-weight: 500;
+}
+
+.spec-chip.trees {
+    color: #4B6358;
+}
+
+.spec-chip.admission {
+    color: var(--color-terracotta);
+    font-weight: 600;
 }
 
 /* 결과 없음 상태 */
@@ -1086,10 +1189,10 @@ body {
 /* 현위치 돌아가기 버튼 */
 .recenter-btn {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
     background-color: var(--bg-card);
     border: 1px dashed var(--color-border);
     border-radius: 50%;
@@ -1114,4 +1217,190 @@ body {
 
 .recenter-btn:active {
     transform: scale(0.95);
+}
+
+/* 에어비앤비 스타일 화면 전환 플로팅 캡슐 버튼 */
+.floating-toggle-btn {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 990;
+    background-color: var(--color-primary); /* #3B5A4F 보태니컬 딥 그린 */
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 30px;
+    padding: 12px 24px;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    box-shadow: 0 6px 20px rgba(42, 64, 56, 0.35);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    user-select: none;
+}
+
+.floating-toggle-btn:hover {
+    background-color: #2D473E;
+    transform: translateX(-50%) translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(42, 64, 56, 0.45);
+}
+
+.floating-toggle-btn:active {
+    transform: translateX(-50%) translateY(0) scale(0.97);
+}
+
+.floating-toggle-btn i {
+    font-size: 14px;
+}
+
+/* 에어비앤비 스타일 지도 넘버링 캡슐 마커 */
+.garden-pill-marker {
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-primary);
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-family: var(--font-serif);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-primary);
+    box-shadow: 0 3px 10px rgba(42, 64, 56, 0.2);
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.garden-pill-marker .marker-num {
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 0 2px;
+}
+
+.garden-pill-marker .marker-score {
+    font-size: 11px;
+    letter-spacing: -0.2px;
+}
+
+.garden-pill-marker:hover,
+.garden-pill-marker.active {
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    transform: scale(1.14);
+    box-shadow: 0 6px 18px rgba(42, 64, 56, 0.35);
+    z-index: 1000 !important;
+}
+
+.garden-pill-marker:hover .marker-num,
+.garden-pill-marker.active .marker-num {
+    background-color: #FFFFFF;
+    color: var(--color-primary);
+}
+
+/* 지도 하단 선택 정원 플로팅 프리뷰 카드 */
+.map-floating-card {
+    position: absolute;
+    bottom: 74px;
+    left: 12px;
+    right: 12px;
+    background-color: var(--bg-card);
+    border: 1px dashed var(--color-border);
+    border-radius: 16px;
+    padding: 13px 15px;
+    box-shadow: 0 8px 25px rgba(42, 64, 56, 0.22);
+    z-index: 950;
+    display: none;
+    flex-direction: column;
+    gap: 9px;
+    animation: slideUpCard 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpCard {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.map-floating-card.active {
+    display: flex;
+}
+
+.floating-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.floating-card-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.floating-card-badge {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-primary);
+    font-family: var(--font-serif);
+}
+
+.floating-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.floating-card-nav-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 3px 10px rgba(42, 64, 56, 0.25);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.floating-card-nav-btn:hover {
+    background-color: #2D473E;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(42, 64, 56, 0.35);
+}
+
+.floating-card-nav-btn:active {
+    transform: translateY(0);
 }

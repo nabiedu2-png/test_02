@@ -20,40 +20,39 @@
             <h1 class="header-title">
                 <i class="fa-solid fa-leaf"></i> 비밀 정원 도감
             </h1>
-            <p class="header-subtitle">도심의 소음을 피해 숨겨진 고요한 초록 쉼터를 찾아서</p>
+            <p class="header-subtitle">도심의 소음을 피해 숨겨진 종로구의 고요한 초록 쉼터를 찾아서</p>
         </header>
 
-        <!-- 반경 및 태그 제어 패널 -->
+        <!-- 반경 및 카테고리 제어 패널 -->
         <section class="controls-panel">
             <div class="radius-slider-container">
                 <span class="radius-label">
                     <i class="fa-solid fa-compass"></i> 탐색 반경
                 </span>
                 <div class="slider-wrapper">
-                    <input type="range" class="radius-slider" id="radiusSlider" min="500" max="2000" step="500" value="1000">
+                    <input type="range" class="radius-slider" id="radiusSlider" min="500" max="5000" step="500" value="3000">
                 </div>
-                <span class="radius-value" id="radiusValue">1.0km</span>
+                <span class="radius-value" id="radiusValue">3.0km</span>
             </div>
 
             <div class="tag-filters" id="tagFilters">
-                <!-- Javascript에서 태그 버튼들을 동적으로 생성하거나 관리합니다. -->
-                <button class="tag-btn active" data-tag="조용한">
-                    <i class="fa-solid fa-volume-xmark"></i> 조용한
+                <button class="tag-btn active" data-category="전체">
+                    <i class="fa-solid fa-border-all"></i> 전체
                 </button>
-                <button class="tag-btn" data-tag="그늘이 많은">
-                    <i class="fa-solid fa-cloud-sun"></i> 그늘이 많은
+                <button class="tag-btn" data-category="숲·산책길">
+                    <i class="fa-solid fa-tree"></i> 숲·산책길
                 </button>
-                <button class="tag-btn" data-tag="벤치가 있는">
-                    <i class="fa-solid fa-chair"></i> 벤치가 있는
+                <button class="tag-btn" data-category="고택·문화정원">
+                    <i class="fa-solid fa-landmark"></i> 고택·문화정원
                 </button>
-                <button class="tag-btn" data-tag="사람이 적은">
-                    <i class="fa-solid fa-user-slash"></i> 사람이 적은
+                <button class="tag-btn" data-category="계곡·물소리">
+                    <i class="fa-solid fa-water"></i> 계곡·물소리
                 </button>
-                <button class="tag-btn" data-tag="물소리가 들리는">
-                    <i class="fa-solid fa-water"></i> 물소리가 들리는
+                <button class="tag-btn" data-category="도심 속 작은 정원">
+                    <i class="fa-solid fa-seedling"></i> 도심 속 작은 정원
                 </button>
-                <button class="tag-btn" data-tag="반려동물 가능">
-                    <i class="fa-solid fa-paw"></i> 반려동물 가능
+                <button class="tag-btn" data-category="성곽·전망쉼터">
+                    <i class="fa-solid fa-mountain-sun"></i> 성곽·전망쉼터
                 </button>
             </div>
         </section>
@@ -73,6 +72,9 @@
             <button class="recenter-btn" id="recenterBtn" title="현위치로 돌아가기">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
+
+            <!-- 지도 하단 선택 정원 플로팅 프리뷰 카드 -->
+            <div class="map-floating-card" id="mapFloatingCard"></div>
         </section>
 
         <!-- 비밀 정원 리스트 영역 -->
@@ -89,6 +91,12 @@
                 <!-- JS에서 카드들을 렌더링합니다. -->
             </div>
         </section>
+
+        <!-- 에어비앤비 스타일 목록 ↔ 지도 전환 플로팅 버튼 -->
+        <button class="floating-toggle-btn" id="viewToggleBtn" aria-label="화면 모드 전환">
+            <i class="fa-solid fa-map" id="toggleBtnIcon"></i>
+            <span id="toggleBtnText">지도 보기</span>
+        </button>
 
         <!-- 길안내 오버레이 화면 (Navigation Screen) -->
         <div class="nav-overlay" id="navOverlay">
@@ -176,6 +184,17 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="gardenCategory" class="form-label">정원 카테고리</label>
+                    <select id="gardenCategory" class="form-input" style="background-color: var(--bg-card); cursor: pointer;">
+                        <option value="도심 속 작은 정원" selected>🌿 도심 속 작은 정원</option>
+                        <option value="숲·산책길">🌲 숲·산책길</option>
+                        <option value="고택·문화정원">🏡 고택·문화정원</option>
+                        <option value="계곡·물소리">💧 계곡·물소리</option>
+                        <option value="성곽·전망쉼터">🌅 성곽·전망쉼터</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">선호 태그 선택 (다중 선택)</label>
                     <div class="form-tag-chips" id="formTagChips">
                         <button type="button" class="form-tag-chip" data-tag="조용한">#조용한</button>
@@ -183,11 +202,9 @@
                         <button type="button" class="form-tag-chip" data-tag="벤치가 있는">#벤치가 있는</button>
                         <button type="button" class="form-tag-chip" data-tag="그늘이 많은">#그늘이 많은</button>
                         <button type="button" class="form-tag-chip" data-tag="물소리가 들리는">#물소리가 들리는</button>
-                        <button type="button" class="form-tag-chip" data-tag="반려견 가능">#반려견 가능</button>
                         <button type="button" class="form-tag-chip" data-tag="산책로">#산책로</button>
-                        <button type="button" class="form-tag-chip" data-tag="밤에 예쁜">#밤에 예쁜</button>
-                        <button type="button" class="form-tag-chip" data-tag="뷰가 좋은">#뷰가 좋은</button>
-                        <button type="button" class="form-tag-chip" data-tag="잔디밭">#잔디밭</button>
+                        <button type="button" class="form-tag-chip" data-tag="반려동물 가능">#반려동물 가능</button>
+                        <button type="button" class="form-tag-chip" data-tag="전망 좋은">#전망 좋은</button>
                     </div>
                 </div>
 
