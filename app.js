@@ -25,6 +25,15 @@ const state = {
     tempMarker: null
 };
 
+// 정원 카테고리별 감성 대표 이미지 매핑
+const CATEGORY_IMAGES = {
+    '숲·산책길': 'images/forest.jpg',
+    '고택·문화정원': 'images/hanok.jpg',
+    '계곡·물소리': 'images/valley.jpg',
+    '도심 속 작은 정원': 'images/pocket.jpg',
+    '성곽·전망쉼터': 'images/wall.jpg'
+};
+
 // DOM 요소 캐싱
 const DOM = {
     radiusSlider: document.getElementById('radiusSlider'),
@@ -136,13 +145,21 @@ function setupEventListeners() {
     });
 
     // 5. 바텀 시트 닫기 이벤트
-    DOM.closeSheetBtn.addEventListener('click', () => {
-        closeAddGardenSheet();
-    });
+    if (DOM.closeSheetBtn) {
+        DOM.closeSheetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAddGardenSheet();
+        });
+    }
 
-    DOM.bottomSheetOverlay.addEventListener('click', () => {
-        closeAddGardenSheet();
-    });
+    if (DOM.bottomSheetOverlay) {
+        DOM.bottomSheetOverlay.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAddGardenSheet();
+        });
+    }
 
     // 6. 현위치 돌아가기 버튼 클릭 이벤트
     DOM.recenterBtn.addEventListener('click', (e) => {
@@ -221,30 +238,32 @@ function selectGardenOnMap(park, idx = 0) {
     if (DOM.mapFloatingCard) {
         const admissionText = park.admission || '무료 개방';
         const categoryName = park.category || '도심 속 작은 정원';
+        const categoryImg = CATEGORY_IMAGES[categoryName] || 'images/pocket.jpg';
 
         DOM.mapFloatingCard.innerHTML = `
-            <div class="floating-card-header">
-                <div>
-                    <div class="floating-card-title">
-                        <span class="card-rank-badge">No. ${idx + 1}</span>
-                        <span>${park.name}</span>
+            <div class="floating-card-body" id="floatingCardBody" title="탭하여 목록의 상세 정보 보기">
+                <div class="floating-card-thumb-wrapper">
+                    <img src="${categoryImg}" alt="${park.name}" class="floating-card-thumb" loading="lazy">
+                    <span class="floating-card-rank-tag">No. ${idx + 1}</span>
+                </div>
+                <div class="floating-card-info">
+                    <div class="floating-card-header">
+                        <div class="floating-card-title">${park.name}</div>
+                        <div class="floating-card-badge">
+                            ${park.quietnessScore}<span style="font-size:10px; font-weight:normal;">점</span>
+                        </div>
                     </div>
-                    <div style="font-size:11px; color:var(--color-primary); font-weight:600; margin-top:2px;">
+                    <div class="floating-card-sub">
                         ${categoryName} · ${admissionText}
                     </div>
-                </div>
-                <div class="floating-card-badge">
-                    ${park.quietnessScore}<span style="font-size:10px; font-weight:normal;">점</span>
-                </div>
-            </div>
-            
-            <div class="floating-card-meta">
-                <div>
-                    <span><i class="fa-solid fa-location-arrow" style="font-size:10px;"></i> ${formatDistance(park.distance)}</span> · 
-                    <span><i class="fa-solid fa-person-walking" style="font-size:10px;"></i> 도보 ${park.walkTime}분</span>
-                </div>
-                <div class="meta-right-stamp" style="font-size:10px; padding:1px 5px;">
-                    ${park.congestion}
+                    <div class="floating-card-meta">
+                        <span><i class="fa-solid fa-location-arrow" style="font-size:10px;"></i> ${formatDistance(park.distance)}</span> · 
+                        <span><i class="fa-solid fa-person-walking" style="font-size:10px;"></i> 도보 ${park.walkTime}분</span> · 
+                        <span class="meta-right-stamp" style="font-size:10px; padding:1px 5px;">${park.congestion}</span>
+                    </div>
+                    <div class="floating-card-hint">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 탭하여 도감 상세 보기
+                    </div>
                 </div>
             </div>
 
@@ -254,6 +273,19 @@ function selectGardenOnMap(park, idx = 0) {
         `;
 
         DOM.mapFloatingCard.classList.add('active');
+
+        // 카드 본체 클릭 시 목록 화면으로 전환 & 해당 카드로 부드럽게 스크롤
+        document.getElementById('floatingCardBody').addEventListener('click', (e) => {
+            toggleViewMode(false);
+            setTimeout(() => {
+                const targetCard = document.getElementById(`park-card-${park.id}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetCard.classList.add('card-highlight');
+                    setTimeout(() => targetCard.classList.remove('card-highlight'), 1800);
+                }
+            }, 120);
+        });
 
         document.getElementById('floatingNavStartBtn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -399,15 +431,72 @@ function setupMap() {
             <div class="popup-distance">여기서부터 비밀 정원을 탐색합니다.</div>
         `);
 
-    // 지도 클릭 시 바텀 시트 열기 및 임시 마커 표시
+    // 지도 빈 공간 클릭 시: 클릭한 위치에 핀과 함께 [이 위치에 정원 제보] 말풍선 팝업 노출
     state.map.on('click', (e) => {
+        // 기존 선택된 정원 카드가 열려있으면 닫기
         if (state.activePark) {
             DOM.navOverlay.classList.remove('active');
+            if (DOM.mapFloatingCard) DOM.mapFloatingCard.classList.remove('active');
+            document.querySelectorAll('.garden-pill-marker').forEach(el => el.classList.remove('active'));
             state.activePark = null;
         }
-        
+
         const { lat, lng } = e.latlng;
-        openAddGardenSheet(lat, lng);
+
+        // 기존 임시 마커 제거 후 클릭한 정확한 위치에 핀 표시
+        if (state.tempMarker) {
+            state.map.removeLayer(state.tempMarker);
+        }
+
+        const tempIcon = L.divIcon({
+            className: 'spot-pin-icon',
+            html: '<div class="spot-pin-circle"><i class="fa-solid fa-location-dot"></i></div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        });
+
+        state.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(state.map);
+
+        // 핀에 바로 붙는 직관적인 미니 말풍선 팝업
+        const popupContent = `
+            <div class="spot-add-popup">
+                <div class="spot-add-desc">선택한 장소</div>
+                <button type="button" class="spot-add-btn" id="spotAddTriggerBtn">
+                    <i class="fa-solid fa-plus"></i> 이 위치에 정원 제보
+                </button>
+            </div>
+        `;
+
+        const spotPopup = L.popup({
+            offset: [0, -22],
+            closeButton: true,
+            autoClose: true,
+            closeOnClick: true,
+            className: 'custom-spot-popup'
+        })
+        .setLatLng([lat, lng])
+        .setContent(popupContent)
+        .openOn(state.map);
+
+        // 팝업이 닫힐 때 폼이 열려있지 않다면 임시 마커도 함께 제거
+        spotPopup.on('remove', () => {
+            if (!DOM.bottomSheet.classList.contains('active') && state.tempMarker) {
+                state.map.removeLayer(state.tempMarker);
+                state.tempMarker = null;
+            }
+        });
+
+        // 말풍선의 [+ 이 위치에 정원 제보] 클릭 시 비로소 제보 바텀 시트 열기
+        setTimeout(() => {
+            const btn = document.getElementById('spotAddTriggerBtn');
+            if (btn) {
+                btn.addEventListener('click', (btnEvent) => {
+                    btnEvent.stopPropagation();
+                    state.map.closePopup();
+                    openAddGardenSheet(lat, lng);
+                });
+            }
+        }, 50);
     });
 }
 
@@ -503,21 +592,24 @@ function renderParksList() {
     state.filteredParks.forEach((park, idx) => {
         const card = document.createElement('div');
         card.className = 'park-card';
+        card.id = `park-card-${park.id}`;
 
         const scaleText = park.scale ? park.scale.split('(')[0].trim() : '도심 정원';
         const treesText = (park.trees && park.trees.length > 0) ? park.trees.slice(0, 2).join('·') : '사계절 수목';
         const admissionText = park.admission || '무료 개방';
         const categoryName = park.category || '도심 속 작은 정원';
+        const categoryImg = CATEGORY_IMAGES[categoryName] || 'images/pocket.jpg';
 
         card.innerHTML = `
+            <div class="park-card-img-wrapper">
+                <img src="${categoryImg}" alt="${park.name}" class="park-card-img" loading="lazy">
+                <span class="card-rank-badge img-rank-badge">No. ${idx + 1}</span>
+            </div>
             <div class="park-card-header">
                 <div>
-                    <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                        <span class="card-rank-badge">No. ${idx + 1}</span>
-                        <span class="card-category-tag" style="margin-bottom: 0;">
-                            <i class="fa-solid fa-leaf"></i> ${categoryName}
-                        </span>
-                    </div>
+                    <span class="card-category-tag" style="margin-bottom: 4px; display: inline-flex;">
+                        <i class="fa-solid fa-leaf"></i> ${categoryName}
+                    </span>
                     <h3 class="park-title">${park.name}</h3>
                 </div>
                 <div class="quietness-badge">

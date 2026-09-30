@@ -321,9 +321,9 @@ body {
 /* 공원 카드 */
 .park-card {
     background-color: var(--bg-card);
-    border: 1px dashed var(--color-border);
+    border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
-    padding: 18px;
+    padding: 16px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
     position: relative;
@@ -331,12 +331,51 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow: hidden;
 }
 
 .park-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-medium);
     border-color: var(--color-primary);
+}
+
+/* 카드 상단 테마 감성 이미지 */
+.park-card-img-wrapper {
+    width: calc(100% + 32px);
+    margin: -16px -16px 2px -16px;
+    height: 140px;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--color-primary-light);
+}
+
+.park-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.park-card:hover .park-card-img {
+    transform: scale(1.05);
+}
+
+.card-rank-badge.img-rank-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(30, 48, 41, 0.82);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 2;
 }
 
 .park-card-header {
@@ -899,17 +938,19 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(28, 46, 36, 0.35);
+    background-color: rgba(28, 46, 36, 0.45);
     backdrop-filter: blur(3px);
-    z-index: 110;
+    z-index: 1990;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.35s ease;
+    transition: all 0.3s ease;
+    pointer-events: none;
 }
 
 .bottom-sheet-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .bottom-sheet {
@@ -920,13 +961,13 @@ body {
     background-color: var(--bg-primary);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
-    z-index: 120;
-    box-shadow: 0 -10px 30px rgba(42, 64, 56, 0.15);
+    z-index: 2000;
+    box-shadow: 0 -10px 40px rgba(42, 64, 56, 0.25);
     transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    max-height: 80%;
+    max-height: 85%;
     border-top: 1px solid var(--color-border);
 }
 
@@ -977,20 +1018,21 @@ body {
 
 .close-sheet-btn {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     color: var(--color-text-muted);
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s, color 0.2s;
+    z-index: 20;
 }
 
 .close-sheet-btn:hover {
@@ -1219,6 +1261,99 @@ body {
     transform: scale(0.95);
 }
 
+/* 클릭한 위치 핀 & 정원 제보 말풍선 팝업 */
+.spot-pin-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spot-pin-circle {
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-terracotta);
+    color: #FFFFFF;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    border: 2px solid #FFFFFF;
+    animation: bouncePin 0.4s ease;
+}
+
+.spot-pin-circle i {
+    transform: rotate(45deg);
+    font-size: 13px;
+}
+
+@keyframes bouncePin {
+    0% { transform: translateY(-12px) rotate(-45deg); opacity: 0; }
+    60% { transform: translateY(2px) rotate(-45deg); opacity: 1; }
+    100% { transform: translateY(0) rotate(-45deg); opacity: 1; }
+}
+
+/* Leaflet 말풍선 커스텀 스타일 */
+.custom-spot-popup .leaflet-popup-content-wrapper {
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(42, 64, 56, 0.22);
+    border: 1px solid var(--color-border);
+    padding: 0;
+    overflow: hidden;
+}
+
+.custom-spot-popup .leaflet-popup-content {
+    margin: 10px 12px;
+    line-height: 1.4;
+}
+
+.custom-spot-popup .leaflet-popup-tip {
+    background-color: #FFFFFF;
+}
+
+.spot-add-popup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.spot-add-desc {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-family: var(--font-serif);
+    font-weight: 500;
+}
+
+.spot-add-btn {
+    padding: 7px 12px;
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 3px 8px rgba(42, 64, 56, 0.25);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.spot-add-btn:hover {
+    background-color: #2D473E;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(42, 64, 56, 0.35);
+}
+
+.spot-add-btn:active {
+    transform: translateY(0);
+}
+
 /* 에어비앤비 스타일 화면 전환 플로팅 캡슐 버튼 */
 .floating-toggle-btn {
     position: absolute;
@@ -1319,14 +1454,14 @@ body {
     left: 12px;
     right: 12px;
     background-color: var(--bg-card);
-    border: 1px dashed var(--color-border);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
-    padding: 13px 15px;
-    box-shadow: 0 8px 25px rgba(42, 64, 56, 0.22);
+    padding: 12px 14px;
+    box-shadow: 0 10px 30px rgba(42, 64, 56, 0.22);
     z-index: 950;
     display: none;
     flex-direction: column;
-    gap: 9px;
+    gap: 10px;
     animation: slideUpCard 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1345,10 +1480,75 @@ body {
     display: flex;
 }
 
+/* 플로팅 카드 본체 (탭하여 목록 이동) */
+.floating-card-body {
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    align-items: center;
+    border-radius: 10px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.floating-card-body:hover {
+    transform: translateY(-1px);
+}
+
+.floating-card-body:active {
+    opacity: 0.85;
+}
+
+/* 썸네일 이미지 및 랭크 뱃지 */
+.floating-card-thumb-wrapper {
+    width: 68px;
+    height: 68px;
+    min-width: 68px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--color-primary-light);
+    border: 1px solid var(--color-border);
+}
+
+.floating-card-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+}
+
+.floating-card-body:hover .floating-card-thumb {
+    transform: scale(1.08);
+}
+
+.floating-card-rank-tag {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(30, 48, 41, 0.85);
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(2px);
+}
+
+/* 정원 정보 텍스트 영역 */
+.floating-card-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
 .floating-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .floating-card-title {
@@ -1356,24 +1556,62 @@ body {
     font-size: 15px;
     font-weight: 700;
     color: var(--color-text-main);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .floating-card-badge {
     font-size: 13px;
     font-weight: 700;
-    color: var(--color-primary);
+    color: var(--color-terracotta);
     font-family: var(--font-serif);
+    flex-shrink: 0;
+    margin-left: 6px;
+}
+
+.floating-card-sub {
+    font-size: 11px;
+    color: var(--color-primary);
+    font-weight: 600;
 }
 
 .floating-card-meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 11px;
     color: var(--color-text-muted);
+}
+
+.floating-card-hint {
+    font-size: 10px;
+    color: var(--color-sage);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+
+/* 목록 카드로 스크롤 포커스 시 은은한 하이라이트 효과 */
+.park-card.card-highlight {
+    animation: highlightPulse 1.8s ease;
+    border-color: var(--color-primary) !important;
+}
+
+@keyframes highlightPulse {
+    0% {
+        box-shadow: 0 0 0 3px rgba(59, 90, 79, 0.4), var(--shadow-medium);
+        transform: scale(1.02);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(59, 90, 79, 0.25), var(--shadow-medium);
+    }
+    100% {
+        box-shadow: var(--shadow-soft);
+        transform: scale(1);
+    }
 }
 
 .floating-card-nav-btn {
